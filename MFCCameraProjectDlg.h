@@ -10,6 +10,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+#include <iostream>
 using namespace cv;
 using namespace std;
 
@@ -55,4 +56,5 @@ public:
 
 	float w = 250, h = 350;
 	Mat matrix, imgWrap;
+
 };

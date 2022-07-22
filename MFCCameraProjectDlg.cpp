@@ -191,10 +191,52 @@ void CMFCCameraProjectDlg::OnTimer(UINT_PTR nIDEvent)
 	  //mat_frame가 입력 이미지입니다. 
 	capture->read(mat_frame);
 
-
 	//이곳에 OpenCV 함수들을 적용합니다.
 	//여기에서는 그레이스케일 이미지로 변환합니다.
 	//cvtColor(mat_frame, mat_frame, COLOR_BGR2GRAY);
+
+	// kdh 추가
+
+	CascadeClassifier faceCascade;
+	faceCascade.load("C:/Users/kdh/Downloads/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml");
+
+	if (faceCascade.empty()) { cout << "XML File load failed" << endl; }
+	else cout << "XML File load successed" << endl;
+
+	vector<Rect> faces;
+
+	faceCascade.detectMultiScale(mat_frame, faces, 1.1, 10);
+	for (int i = 0; i < faces.size(); i++)
+	{
+		rectangle(mat_frame, faces[i].tl(), faces[i].br(), Scalar(0, 212, 255), 1);
+	}
+
+
+	// 시간
+	CTime cTime = CTime::GetCurrentTime(); // 현재 시스템으로부터 날짜 및 시간을 얻어 온다.
+	CString strDate, strTime;
+	strDate.Format(_T("%04d - %02d - %02d"), cTime.GetYear(), cTime.GetMonth(), cTime.GetDay());
+	strTime.Format(_T("%02d : %02d : %02d"), cTime.GetHour(), cTime.GetMinute(),cTime.GetSecond()); // 현재 초 반환
+
+	// CString -> string 변환
+	string str_date = string(CT2CA(strDate));
+	string str_time = string(CT2CA(strTime));
+	
+	Point myPoint;
+	myPoint.x = 10;
+	myPoint.y = 10;
+	Point myPoint_time;
+	myPoint_time.x = 10;
+	myPoint_time.y = 20;
+
+	/// Font Face
+	int myFontFace = 2;
+
+	/// Font Scale
+	double myFontScale = 0.35;
+	putText(mat_frame, str_date, myPoint, myFontFace, myFontScale, Scalar::all(0));
+	putText(mat_frame, str_time, myPoint_time, myFontFace, myFontScale, Scalar::all(0));
+	// 여기까지
 
 
 	//화면에 보여주기 위한 처리입니다.
