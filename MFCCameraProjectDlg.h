@@ -11,6 +11,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
+
+#include "SerialCom.h"
+
 using namespace cv;
 using namespace std;
 
@@ -20,6 +23,14 @@ class CMFCCameraProjectDlg : public CDialogEx
 // 생성입니다.
 public:
 	CMFCCameraProjectDlg(CWnd* pParent = nullptr);	// 표준 생성자입니다.
+
+	/* 추가 부분  MrKang*/
+	CSerialComm* m_comm;
+	LRESULT		OnThreadClosed(WPARAM length, LPARAM lpara);
+	LRESULT		OnReceive(WPARAM length, LPARAM lpara);
+	/* 추가 부분 끝 MrKang*/
+
+
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
@@ -44,7 +55,8 @@ public:
 	CStatic m_picture;
 	afx_msg void OnDestroy();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
-
+	/*MrKang 추가*/
+	BOOL comport_state;
 	// kdh 추가
 public:
 	VideoCapture* capture;
@@ -57,4 +69,13 @@ public:
 	float w = 250, h = 350;
 	Mat matrix, imgWrap;
 
+	CascadeClassifier faceCascade;
+
+	CComboBox m_combo_comport_list;
+	CComboBox m_combo_baudrate_list;
+	afx_msg void OnBnClickedBtConnect();
+	CString m_str_comport;
+	CString m_combo_baudrate;
+	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButton1();
 };

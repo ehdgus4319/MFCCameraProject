@@ -52,6 +52,8 @@ END_MESSAGE_MAP()
 
 CMFCCameraProjectDlg::CMFCCameraProjectDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MFCCAMERAPROJECT_DIALOG, pParent)
+	, m_str_comport(_T(""))
+	, m_combo_baudrate(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -61,6 +63,10 @@ void CMFCCameraProjectDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_PICTURE, m_picture);
 	DDX_Control(pDX, IDC_BUTTON6, m_OnOffButton);
+	DDX_Control(pDX, IDC_COMBO_COMPORT, m_combo_comport_list);
+	DDX_Control(pDX, IDC_COMBO_BAUDRATE, m_combo_baudrate_list);
+	DDX_CBString(pDX, IDC_COMBO_COMPORT, m_str_comport);
+	DDX_CBString(pDX, IDC_COMBO_BAUDRATE, m_combo_baudrate);
 }
 
 BEGIN_MESSAGE_MAP(CMFCCameraProjectDlg, CDialogEx)
@@ -70,6 +76,9 @@ BEGIN_MESSAGE_MAP(CMFCCameraProjectDlg, CDialogEx)
 	ON_WM_DESTROY()
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON6, &CMFCCameraProjectDlg::OnBnClickedButton6)
+	ON_BN_CLICKED(IDC_BT_CONNECT, &CMFCCameraProjectDlg::OnBnClickedBtConnect)
+	ON_BN_CLICKED(IDC_BUTTON2, &CMFCCameraProjectDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON1, &CMFCCameraProjectDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -107,7 +116,32 @@ BOOL CMFCCameraProjectDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 
 	// KDH 추가
-	
+	m_combo_comport_list.AddString(_T("COM1"));
+	m_combo_comport_list.AddString(_T("COM2"));
+	m_combo_comport_list.AddString(_T("COM3"));
+	m_combo_comport_list.AddString(_T("COM4"));
+	m_combo_comport_list.AddString(_T("COM5"));
+	m_combo_comport_list.AddString(_T("COM6"));
+	m_combo_comport_list.AddString(_T("COM7"));
+	m_combo_comport_list.AddString(_T("COM8"));
+	m_combo_comport_list.AddString(_T("COM9"));
+	m_combo_comport_list.AddString(_T("COM10"));
+
+	m_combo_baudrate_list.AddString(_T("9600"));
+	m_combo_baudrate_list.AddString(_T("19200"));
+	m_combo_baudrate_list.AddString(_T("115200"));
+
+
+	comport_state = false;
+	GetDlgItem(IDC_BT_CONNECT)->SetWindowText(_T("OPEN"));
+	m_str_comport = _T("COM4");
+	m_combo_baudrate = _T("115200");
+	UpdateData(FALSE);
+
+	faceCascade.load("C:/Users/kdh/Downloads/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml");
+
+
+	// 캠 부분
 	capture = new VideoCapture(0);
 	if (!capture->isOpened())
 	{
@@ -119,6 +153,9 @@ BOOL CMFCCameraProjectDlg::OnInitDialog()
 	capture->set(CAP_PROP_FRAME_WIDTH, 320);
 	capture->set(CAP_PROP_FRAME_HEIGHT, 240);
 	SetTimer(1000, 30, NULL);
+
+	
+	
 
 	this->SetWindowTextW(_T("CCTV 프로그램"));  // 프로그램 이름 고정
 
@@ -197,15 +234,14 @@ void CMFCCameraProjectDlg::OnTimer(UINT_PTR nIDEvent)
 
 	// kdh 추가
 
-	CascadeClassifier faceCascade;
-	faceCascade.load("C:/Users/kdh/Downloads/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml");
+
 
 	if (faceCascade.empty()) { cout << "XML File load failed" << endl; }
 	else cout << "XML File load successed" << endl;
 
 	vector<Rect> faces;
 
-	faceCascade.detectMultiScale(mat_frame, faces, 1.1, 10);
+	faceCascade.detectMultiScale(mat_frame, faces, 1.1, 5);
 	for (int i = 0; i < faces.size(); i++)
 	{
 		rectangle(mat_frame, faces[i].tl(), faces[i].br(), Scalar(0, 212, 255), 1);
@@ -234,8 +270,8 @@ void CMFCCameraProjectDlg::OnTimer(UINT_PTR nIDEvent)
 
 	/// Font Scale
 	double myFontScale = 0.35;
-	putText(mat_frame, str_date, myPoint, myFontFace, myFontScale, Scalar::all(0));
-	putText(mat_frame, str_time, myPoint_time, myFontFace, myFontScale, Scalar::all(0));
+	putText(mat_frame, str_date, myPoint, myFontFace, myFontScale, Scalar::all(255));
+	putText(mat_frame, str_time, myPoint_time, myFontFace, myFontScale, Scalar::all(255));
 	// 여기까지
 
 
@@ -368,4 +404,59 @@ void CMFCCameraProjectDlg::OnBnClickedButton6()
 		m_OnOffButton.SetWindowTextW(_T("카메라 ON"));
 	}
 	UpdateData(false);
+}
+
+
+void CMFCCameraProjectDlg::OnBnClickedBtConnect()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	if (comport_state)
+	{
+		if (m_comm)        //컴포트가존재하면
+		{
+			// KDH 추가
+		
+			m_comm->Close();
+			m_comm = NULL;
+			AfxMessageBox(_T("COM 포트닫힘"));
+			comport_state = false;
+			GetDlgItem(IDC_BT_CONNECT)->SetWindowText(_T("OPEN"));
+			//GetDlgItem(IDC_BT_SEND)->EnableWindow(false);
+		}
+	}
+	else
+	{
+		m_comm = new CSerialComm(_T("\\\\.\\") + m_str_comport, m_combo_baudrate, _T("None"), _T("8 Bit"), _T("1 Bit"));         // initial Comm port
+		if (m_comm->Create(GetSafeHwnd()) != 0) //통신포트를열고윈도우의핸들을넘긴다.
+		{
+			AfxMessageBox(_T("COM 포트열림"));
+			comport_state = true;
+			GetDlgItem(IDC_BT_CONNECT)->SetWindowText(_T("CLOSE"));
+			//GetDlgItem(IDC_BT_SEND)->EnableWindow(true);
+		}
+		else
+		{
+			AfxMessageBox(_T("ERROR!"));
+		}
+
+	}
+
+}
+
+
+void CMFCCameraProjectDlg::OnBnClickedButton2()  // 오른쪽 방향 이동
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString str = _T("1");
+	str += "\r\n";
+	m_comm->Send(str, str.GetLength());
+}
+
+
+void CMFCCameraProjectDlg::OnBnClickedButton1()  // 왼쪽 방향  이동
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString str = _T("0");
+	str += "\r\n";
+	m_comm->Send(str, str.GetLength());
 }
