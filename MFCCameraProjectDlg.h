@@ -70,6 +70,7 @@ public:
 	Mat matrix, imgWrap;
 
 	CascadeClassifier faceCascade;
+	CascadeClassifier plateCascade;
 
 	CComboBox m_combo_comport_list;
 	CComboBox m_combo_baudrate_list;
@@ -78,4 +79,5 @@ public:
 	CString m_combo_baudrate;
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton1();
+
 };

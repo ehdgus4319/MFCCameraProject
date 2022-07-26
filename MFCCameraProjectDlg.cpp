@@ -67,6 +67,7 @@ void CMFCCameraProjectDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO_BAUDRATE, m_combo_baudrate_list);
 	DDX_CBString(pDX, IDC_COMBO_COMPORT, m_str_comport);
 	DDX_CBString(pDX, IDC_COMBO_BAUDRATE, m_combo_baudrate);
+	
 }
 
 BEGIN_MESSAGE_MAP(CMFCCameraProjectDlg, CDialogEx)
@@ -139,7 +140,7 @@ BOOL CMFCCameraProjectDlg::OnInitDialog()
 	UpdateData(FALSE);
 
 	faceCascade.load("C:/Users/kdh/Downloads/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml");
-
+	plateCascade.load("C:/Users/kdh/Downloads/opencv/sources/data/haarcascades/haarcascade_russian_plate_number.xml");
 
 	// 캠 부분
 	capture = new VideoCapture(0);
@@ -154,10 +155,16 @@ BOOL CMFCCameraProjectDlg::OnInitDialog()
 	capture->set(CAP_PROP_FRAME_HEIGHT, 240);
 	SetTimer(1000, 30, NULL);
 
-	
-	
-
 	this->SetWindowTextW(_T("CCTV 프로그램"));  // 프로그램 이름 고정
+
+	/*
+	if(flag == 1)
+	{
+		flag = 0;
+		CString tmp = _T("2");
+		m_comm->Send(tmp, tmp.GetLength());
+	}
+	*/
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -235,17 +242,25 @@ void CMFCCameraProjectDlg::OnTimer(UINT_PTR nIDEvent)
 	// kdh 추가
 
 
-
-	if (faceCascade.empty()) { cout << "XML File load failed" << endl; }
-	else cout << "XML File load successed" << endl;
-
 	vector<Rect> faces;
-
+	vector<Rect> plates;
+	// 얼굴인식 부분
 	faceCascade.detectMultiScale(mat_frame, faces, 1.1, 5);
 	for (int i = 0; i < faces.size(); i++)
 	{
 		rectangle(mat_frame, faces[i].tl(), faces[i].br(), Scalar(0, 212, 255), 1);
+		CString tmp = _T("2");
+		m_comm->Send(tmp, tmp.GetLength());
 	}
+	// 차량 번호판 부분
+	plateCascade.detectMultiScale(mat_frame, plates, 1.1, 10);
+	for (int i = 0; i < plates.size(); i++)
+	{
+		Mat imgCrop = mat_frame(plates[i]);
+		imwrite("C:/Users/kdh/Downloads/" + to_string(i) + ".png", imgCrop);  // 차량번호 이미지 파일 저장
+		rectangle(mat_frame, plates[i].tl(), plates[i].br(), Scalar(255, 0, 255), 3);
+	}
+
 
 
 	// 시간
